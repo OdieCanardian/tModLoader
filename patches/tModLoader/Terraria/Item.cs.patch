@@ -8,11 +8,12 @@
  using Terraria.Audio;
  using Terraria.Enums;
  using Terraria.GameContent;
-@@ -10,10 +_,11 @@
+@@ -10,10 +_,12 @@
  using Terraria.ID;
  using Terraria.UI;
  using Terraria.Utilities;
 +using Terraria.ModLoader;
++using Terraria.ModLoader.IO;
  
  namespace Terraria
  {
@@ -30,14 +31,17 @@
  		public bool isAShopItem;
  		public short hairDye = -1;
  		public byte paint;
-@@ -147,10 +_,42 @@
+@@ -146,11 +_,44 @@
+ 		public bool DD2Summon;
  		public int netID;
  		public int crit;
- 		public byte prefix;
+-		public byte prefix;
 -		public bool melee;
 -		public bool magic;
 -		public bool ranged;
 -		public bool summon;
++		public int prefix; //TML: Changed from byte to int.
++
 +		internal bool melee {
 +			get => CountsAsClass(DamageClass.Melee);
 +			set {
@@ -235,7 +239,7 @@
  						break;
  				}
 +				if (num >= PrefixID.Count)
-+					PrefixLoader.GetPrefix((byte)num)?.SetStats(ref num2, ref num3, ref num4, ref num5, ref num6, ref num7, ref num8);
++					PrefixLoader.GetPrefix(num)?.SetStats(ref num2, ref num3, ref num4, ref num5, ref num6, ref num7, ref num8);
  
  				if (num2 != 1f && Math.Round((float)damage * num2) == (double)damage) {
  					flag = true;
@@ -244,7 +248,7 @@
  				}
  
 +				if (num >= PrefixID.Count)
-+					PrefixLoader.GetPrefix((byte)num)?.ValidateItem(this, ref flag);
++					PrefixLoader.GetPrefix(num)?.ValidateItem(this, ref flag);
 +
  				if (pre == -2 && num == 0) {
  					num = -1;
@@ -261,7 +265,7 @@
  			shootSpeed *= num6;
  			crit += num8;
 +			if (num >= PrefixID.Count)
-+				PrefixLoader.GetPrefix((byte)num)?.Apply(this);
++				PrefixLoader.GetPrefix(num)?.Apply(this);
 +
  			float num14 = 1f * num2 * (2f - num4) * (2f - num7) * num5 * num3 * num6 * (1f + (float)num8 * 0.02f);
  			if (num == 62 || num == 69 || num == 73 || num == 77)
@@ -271,13 +275,13 @@
  				num14 *= 1.2f;
  
 +			if (num >= PrefixID.Count)
-+				PrefixLoader.GetPrefix((byte)num)?.ModifyValue(ref num14);
++				PrefixLoader.GetPrefix(num)?.ModifyValue(ref num14);
 +
 +			int baseRarity = rare;
  			if ((double)num14 >= 1.2)
  				rare += 2;
  			else if ((double)num14 >= 1.05)
-@@ -1075,12 +_,15 @@
+@@ -1075,17 +_,20 @@
  			else if ((double)num14 <= 0.95)
  				rare--;
  
@@ -295,6 +299,12 @@
  			}
  
  			num14 *= num14;
+ 			value = (int)((float)value * num14);
+-			prefix = (byte)num;
++			prefix = num;
+ 			return true;
+ 		}
+ 
 @@ -1118,6 +_,8 @@
  		public Rectangle getRect() => new Rectangle((int)position.X, (int)position.Y, width, height);
  
@@ -693,10 +703,10 @@
 +			if (NPCLoader.blockLoot.Contains(Type))
 +				return Main.maxItems;
 +
- 			if (Main.halloween) {
- 				if (Type == 58)
- 					Type = 1734;
-@@ -46109,14 +_,17 @@
+ 			if (Main.tenthAnniversaryWorld) {
+ 				if (Type == 58) {
+ 					Type = Main.rand.NextFromList(new short[3] {
+@@ -46127,14 +_,17 @@
  						continue;
  
  					Player.ItemSpaceStatus status = player.ItemSpace(Main.item[whoAmI]);
@@ -717,7 +727,7 @@
  						if (type == 4143)
  							num3 -= (float)manaGrabRange;
  
-@@ -46135,8 +_,31 @@
+@@ -46153,8 +_,31 @@
  			}
  		}
  
@@ -751,7 +761,7 @@
  
  		public bool IsTheSameAs(Item compareItem) {
  			if (netID == compareItem.netID)
-@@ -46167,6 +_,8 @@
+@@ -46185,6 +_,8 @@
  			dye = 0;
  			shoot = 0;
  			mountType = -1;
@@ -760,7 +770,16 @@
  		}
  
  		public void OnPurchase(Item item) {
-@@ -46198,7 +_,7 @@
+@@ -46205,7 +_,7 @@
+ 			if (context == ItemSerializationContext.SavingAndLoading) {
+ 				writer.Write(netID);
+ 				writer.Write(stack);
+-				writer.Write(prefix);
++				ItemIO.WriteByteVanillaPrefix(this, writer);
+ 			}
+ 		}
+ 
+@@ -46216,7 +_,7 @@
  				Prefix(reader.ReadByte());
  			}
  
