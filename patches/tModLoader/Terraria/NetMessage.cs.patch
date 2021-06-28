@@ -49,6 +49,20 @@
  						break;
  					case 3:
  						writer.Write((byte)remoteClient);
+@@ -106,7 +_,12 @@
+ 							writer.Write((byte)player5.skinVariant);
+ 							writer.Write((byte)player5.hair);
+ 							writer.Write(player5.name);
++
++							if (ModNet.AllowVanillaClients)
++								PlayerIO.WriteByteVanillaHairDye(player5.hairDye, writer);
++							else
+-							writer.Write(player5.hairDye);
++								writer.WriteVarInt(player5.hairDye);
++
+ 							BitsByte bb6 = (byte)0;
+ 							for (int num13 = 0; num13 < 8; num13++) {
+ 								bb6[num13] = player5.hideVisibleAccessory[num13];
 @@ -157,12 +_,21 @@
  
  							num8 = item5.stack;
@@ -226,7 +240,7 @@
  
  							break;
  						}
-@@ -1059,9 +_,17 @@
+@@ -1059,9 +_,16 @@
  							writer.Write((short)number);
  							writer.Write((short)number2);
  							Item item3 = Main.player[(int)number4].inventory[(int)number3];
@@ -239,35 +253,35 @@
 +								ItemIO.WriteShortVanillaStack(number5, writer);
 +							}
 +							else {
-+								writer.WriteVarInt(item3.netID);
-+								writer.WriteVarInt(item3.prefix);
++								ItemIO.Send(item3, writer);
 +								writer.WriteVarInt(number5);
 +							}
 +
  							break;
  						}
  					case 91:
-@@ -1229,9 +_,16 @@
+@@ -1229,9 +_,17 @@
  							writer.Write((short)number);
  							writer.Write((short)number2);
  							Item item2 = Main.player[(int)number4].inventory[(int)number3];
 -							writer.Write((short)item2.netID);
 -							writer.Write(item2.prefix);
 -							writer.Write((short)number5);
++
 +							if (ModNet.AllowVanillaClients) {
 +								ItemIO.WriteShortVanillaID(item2, writer);
 +								ItemIO.WriteByteVanillaPrefix(item2, writer);
 +								ItemIO.WriteShortVanillaStack(number5, writer);
 +							}
 +							else {
-+								writer.WriteVarInt(item2.netID);
-+								writer.WriteVarInt(item2.prefix);
++								ItemIO.Send(item2, writer);
 +								writer.WriteVarInt(number5);
 +							}
++
  							break;
  						}
  					case 124: {
-@@ -1292,9 +_,18 @@
+@@ -1292,9 +_,17 @@
  							writer.Write((short)number);
  							writer.Write((short)number2);
  							Item item = Main.player[(int)number4].inventory[(int)number3];
@@ -281,8 +295,7 @@
 +								ItemIO.WriteShortVanillaStack(number5, writer);
 +							}
 +							else {
-+								writer.WriteVarInt(item.netID);
-+								writer.WriteVarInt(item.prefix);
++								ItemIO.Send(item, writer);
 +								writer.WriteVarInt(number5);
 +							}
 +
